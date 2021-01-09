@@ -76,7 +76,79 @@ namespace Bricks
                 }
                 Console.WriteLine();
             }
+        }
 
+        // print bricks with asterisk 
+        public static void PrintBrickLayerFormatted(int[,] brickLayer)
+        {
+            var rows = brickLayer.GetLength(0);
+            var columns = brickLayer.GetLength(1);
+            for (var row = 0; row < rows; row++)
+            {
+                var isLastRow = row == rows - 1;
+                var maxSubIndex = isLastRow ? 3 : 2;
+
+                for (var subPrintIndex = 0; subPrintIndex < maxSubIndex; subPrintIndex++)
+                {
+                    for (var col = 0; col < columns; col++)
+                    {
+                        var hasUpBrick = row > 0 && brickLayer[row, col] == brickLayer[row - 1, col];
+                        var hasDownBrick = row < rows - 1 && brickLayer[row, col] == brickLayer[row + 1, col];
+                        var hasLeftBrick = col > 0 && brickLayer[row, col] == brickLayer[row, col - 1];
+                        var hasRightBrick = col < columns - 1 && brickLayer[row, col] == brickLayer[row, col + 1];
+                        var isLastCol = col == columns - 1;
+
+                        if (subPrintIndex == 0)
+                        {
+                            if (hasUpBrick)
+                            {
+                                Console.Write("*   ");
+                            }
+                            else
+                            {
+                                Console.Write("****");
+                            }
+                        }
+
+                        if (subPrintIndex == 1)
+                        {
+                            var valueToPrint = brickLayer[row, col].ToString().PadLeft(3);
+                            if (hasLeftBrick)
+                            {
+                                Console.Write($" {valueToPrint}");
+                            }
+                            else if (hasRightBrick)
+                            {
+                                Console.Write($"*{valueToPrint}");
+                            }
+                            else
+                            {
+                                Console.Write($"*{valueToPrint}");
+                            }
+                        }
+
+                        if (subPrintIndex == 2)
+                        {
+                            if (hasDownBrick)
+                            {
+                                Console.Write("*   ");
+                            }
+                            else
+                            {
+                                Console.Write("****");
+                            }
+                        }
+
+                        if (isLastCol)
+                        {
+                            Console.Write("*");
+                        }
+
+                    }
+
+                    Console.WriteLine();
+                }
+            }
         }
 
         public static void Solve(int rows, int columns, string[,] firstBrickLayer)
@@ -87,8 +159,8 @@ namespace Bricks
         static void Main(string[] args)
         {
             var firstLayerBricks = ReadInput();
-            PrintBrickLayer(firstLayerBricks);
-            Console.WriteLine(ValidateBrickSpanning(firstLayerBricks));
+            PrintBrickLayerFormatted(firstLayerBricks);
+            //  Console.WriteLine(ValidateBrickSpanning(firstLayerBricks));
         }
     }
 }
