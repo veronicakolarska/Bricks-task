@@ -78,9 +78,11 @@ namespace Bricks
             }
         }
 
-        // print bricks with asterisk 
+        // print bricks with asterisk  
+        // up and left of every position
         public static void PrintBrickLayerFormatted(int[,] brickLayer)
         {
+            var wallSymbol = '*';
             var rows = brickLayer.GetLength(0);
             var columns = brickLayer.GetLength(1);
             for (var row = 0; row < rows; row++)
@@ -102,11 +104,11 @@ namespace Bricks
                         {
                             if (hasUpBrick)
                             {
-                                Console.Write("*   ");
+                                Console.Write($"{wallSymbol}   ");
                             }
                             else
                             {
-                                Console.Write("****");
+                                Console.Write(new string(wallSymbol, 4));
                             }
                         }
 
@@ -119,11 +121,11 @@ namespace Bricks
                             }
                             else if (hasRightBrick)
                             {
-                                Console.Write($"*{valueToPrint}");
+                                Console.Write($"{wallSymbol}{valueToPrint}");
                             }
                             else
                             {
-                                Console.Write($"*{valueToPrint}");
+                                Console.Write($"{wallSymbol}{valueToPrint}");
                             }
                         }
 
@@ -131,21 +133,20 @@ namespace Bricks
                         {
                             if (hasDownBrick)
                             {
-                                Console.Write("*   ");
+                                Console.Write($"{wallSymbol}   ");
                             }
                             else
                             {
-                                Console.Write("****");
+                                Console.Write(new string(wallSymbol, 4));
                             }
                         }
 
+                        // prints the last column of asterisk for every row
                         if (isLastCol)
                         {
-                            Console.Write("*");
+                            Console.Write(wallSymbol);
                         }
-
                     }
-
                     Console.WriteLine();
                 }
             }
