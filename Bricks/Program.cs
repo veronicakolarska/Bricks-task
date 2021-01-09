@@ -41,7 +41,8 @@ namespace Bricks
                         .Select(dimension => int.Parse(dimension))
                         .ToArray();
 
-            // TODO: validate dimensions
+            // TODO: validate dimensions are whole even numbers 1-100
+            // TODO: validate input has the input dimensions
 
             var rows = dimensionInputs[0];
             var columns = dimensionInputs[1];
@@ -67,12 +68,13 @@ namespace Bricks
         {
             var rows = brickLayer.GetLength(0);
             var columns = brickLayer.GetLength(1);
+            // for every row that doesn't exceed max rows
             for (var row = 0; row < rows; row++)
             {
+                // for every column that doesn't exceed max columns
                 for (var col = 0; col < columns; col++)
                 {
                     Console.Write(brickLayer[row, col] + " ");
-
                 }
                 Console.WriteLine();
             }
@@ -82,7 +84,9 @@ namespace Bricks
         // up and left of every position
         public static void PrintBrickLayerFormatted(int[,] brickLayer)
         {
+            // print character
             var wallSymbol = '*';
+            // get number of rows and columns
             var rows = brickLayer.GetLength(0);
             var columns = brickLayer.GetLength(1);
             for (var row = 0; row < rows; row++)
@@ -94,12 +98,16 @@ namespace Bricks
                 {
                     for (var col = 0; col < columns; col++)
                     {
+                        // checks if the upper, left, right or botton brick exists
+                        // and we are inside the area
                         var hasUpBrick = row > 0 && brickLayer[row, col] == brickLayer[row - 1, col];
                         var hasDownBrick = row < rows - 1 && brickLayer[row, col] == brickLayer[row + 1, col];
                         var hasLeftBrick = col > 0 && brickLayer[row, col] == brickLayer[row, col - 1];
                         var hasRightBrick = col < columns - 1 && brickLayer[row, col] == brickLayer[row, col + 1];
                         var isLastCol = col == columns - 1;
 
+                        // process every row by few criteria
+                        // row 0 is first line of processing
                         if (subPrintIndex == 0)
                         {
                             if (hasUpBrick)
@@ -112,6 +120,7 @@ namespace Bricks
                             }
                         }
 
+                        // processing part 2
                         if (subPrintIndex == 1)
                         {
                             var valueToPrint = brickLayer[row, col].ToString().PadLeft(3);
@@ -129,6 +138,7 @@ namespace Bricks
                             }
                         }
 
+                        // processing part 3
                         if (subPrintIndex == 2)
                         {
                             if (hasDownBrick)
@@ -147,6 +157,7 @@ namespace Bricks
                             Console.Write(wallSymbol);
                         }
                     }
+                    // end of row
                     Console.WriteLine();
                 }
             }
@@ -160,8 +171,8 @@ namespace Bricks
         static void Main(string[] args)
         {
             var firstLayerBricks = ReadInput();
-            PrintBrickLayerFormatted(firstLayerBricks);
             //  Console.WriteLine(ValidateBrickSpanning(firstLayerBricks));
+            PrintBrickLayerFormatted(firstLayerBricks);
         }
     }
 }
