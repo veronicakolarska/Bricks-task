@@ -56,11 +56,11 @@ namespace Bricks
             var rows = dimensionInputs[0];
             var columns = dimensionInputs[1];
 
-            if (rows > 1 && rows <= 100 && rows % 2 == 0)
+            if (rows < 2 || rows > 100 || (rows % 2) != 0)
             {
                 throw new ArgumentOutOfRangeException("Rows are not in range!");
             }
-            if (columns > 1 && columns <= 100 && columns % 2 == 0)
+            if (columns < 2 || columns > 100 || (columns % 2) != 0)
             {
                 throw new ArgumentOutOfRangeException("Columns are not in range!");
             }
