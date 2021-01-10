@@ -1,6 +1,8 @@
 namespace Bricks
 {
-    // errors for brick span more than 2
+    /// <summary>
+    /// Validation to check if a brick spans more than two cells
+    /// </summary>
     public class BrickSpanValidationError
     {
         public int BrickNumber { get; set; }

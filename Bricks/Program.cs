@@ -7,7 +7,11 @@ namespace Bricks
 {
     public class Program
     {
-        // validate no brick spans 3 rows / columns
+        /// <summary>
+        /// validate no brick spans 3 rows / columns
+        /// </summary>
+        /// <param name="firstLayer"> the brick layer to be validated</param>
+        /// <returns>an array of errors if there are any</returns>
         public static IEnumerable<BrickSpanValidationError> ValidateBrickSpanning(int[,] firstLayer)
         {
             var brickFrequency = new Dictionary<int, int>();
@@ -35,19 +39,31 @@ namespace Bricks
                     .Select(x => new BrickSpanValidationError(x.Key, x.Value));
         }
 
-        // read input - two dimensions and first layer of bricks
+
+        /// <summary>
+        /// reads input - two dimensions and first layer of bricks and validates them
+        /// </summary>
+        /// <param name="consoleIO">console input</param>
+        /// <returns>first layer array or throws exception</returns>
         public static int[,] ReadInput(IConsoleIO consoleIO)
         {
+            // get the two dimensions from the console
             var dimensionInputs = consoleIO.ReadLine()
                         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                         .Select(dimension => int.Parse(dimension))
                         .ToArray();
 
-            // TODO: validate dimensions are whole even numbers 1-100
-            // TODO: validate input has the input dimensions
-
             var rows = dimensionInputs[0];
             var columns = dimensionInputs[1];
+
+            if (rows > 1 && rows <= 100 && rows % 2 == 0)
+            {
+                throw new ArgumentOutOfRangeException("Rows are not in range!");
+            }
+            if (columns > 1 && columns <= 100 && columns % 2 == 0)
+            {
+                throw new ArgumentOutOfRangeException("Columns are not in range!");
+            }
 
             var firstBrickLayer = new int[rows, columns];
 
@@ -58,6 +74,12 @@ namespace Bricks
                         .Select(dimension => int.Parse(dimension))
                         .ToArray();
 
+                // check if columns are the same as area
+                if (brickRow.Length != columns)
+                {
+                    throw new ArgumentOutOfRangeException("Column length is not the same!");
+                }
+
                 for (int col = 0; col < columns; col++)
                 {
                     firstBrickLayer[row, col] = brickRow[col];
@@ -66,6 +88,12 @@ namespace Bricks
             return firstBrickLayer;
         }
 
+        /// <summary>
+        /// basic print method for every layer
+        /// </summary>
+        /// <param name="brickLayer">(first) brick layer</param>
+        /// <param name="consoleIO">console input</param>
+        /// <typeparam name="T">every type</typeparam>
         public static void PrintBrickLayer<T>(T[,] brickLayer, IConsoleIO consoleIO)
         {
             var rows = brickLayer.GetLength(0);
@@ -82,8 +110,12 @@ namespace Bricks
             }
         }
 
-        // print bricks with asterisk  
-        // from up and left of every position
+
+        /// <summary>
+        /// print bricks with asterisk from top and left of every position
+        /// </summary>
+        /// <param name="brickLayer">(first) brick layer</param>
+        /// <param name="consoleIO">console input</param>
         public static void PrintBrickLayerFormatted(int[,] brickLayer, IConsoleIO consoleIO)
         {
             // print character
@@ -167,6 +199,11 @@ namespace Bricks
             }
         }
 
+        /// <summary>
+        /// Decides if there is a solution to arrange the second layer
+        /// </summary>
+        /// <param name="firstBrickLayer">first layer of bricks</param>
+        /// <returns>second layer if finds a solution, or null if not</returns>
         public static int[,] Solve(int[,] firstBrickLayer)
         {
             var rows = firstBrickLayer.GetLength(0);
@@ -226,6 +263,7 @@ namespace Bricks
             }
 
             var connectedOriginsTargetsCount = 0;
+            // reset it for every element 
             Array.Fill(targetsAndOrigins, -1);
 
             for (int firstLayerRowColPosition = 0; firstLayerRowColPosition < targetsAndOrigins.Length; firstLayerRowColPosition++)
@@ -266,12 +304,19 @@ namespace Bricks
             }
         }
 
+
+        /// <summary>
+        /// Builds possible ways to move the bricks
+        /// </summary>
+        /// <param name="firstLayerRowColPosition">flat representation of the area coordinates</param>
+        /// <param name="positionsToNavigate">all possible ways a brick part can rotate - max 4 ways</param>
+        /// <param name="usedPosition"></param>
+        /// <param name="targetsAndOrigins">array of origins and destinations of the brick number used from the construction of the second layer</param>
+        /// <returns>returns true if building was successful; false otherwise</returns>
         public static bool BuildTargetsAndOrigins(
             int firstLayerRowColPosition,
             Dictionary<int, List<int>> positionsToNavigate,
             bool[] usedPosition,
-            // array of origins and destinations of the brick number
-            // used from the construction of the second layer
             // -1 marks the target of a brick and the destination of the brick is found by taking the index of the origin and searching for a value in the array with that index
             // the index of that value is the destination of the brick  
             int[] targetsAndOrigins)
@@ -301,19 +346,24 @@ namespace Bricks
                     }
                 }
             }
-
             return false;
         }
 
-        public static void AddToListInPosition(int position, int valueToAdd, Dictionary<int, List<int>> guide)
+        /// <summary>
+        /// Add possible positions of the second part of the brick in a List in Dictionary
+        /// </summary>
+        /// <param name="brickPositionNumber">flat representation of the brick position</param>
+        /// <param name="newBrickValue">the value to add to positionsToNavigate</param>
+        /// <param name="positionsToNavigate">all possible ways a brick part can rotate - max 4 ways</param>
+        public static void AddToListInPosition(int brickPositionNumber, int newBrickValue, Dictionary<int, List<int>> positionsToNavigate)
         {
-            if (!guide.ContainsKey(position))
+            if (!positionsToNavigate.ContainsKey(brickPositionNumber))
             {
-                guide.Add(position, new List<int>() { valueToAdd });
+                positionsToNavigate.Add(brickPositionNumber, new List<int>() { newBrickValue });
             }
             else
             {
-                guide[position].Add(valueToAdd);
+                positionsToNavigate[brickPositionNumber].Add(newBrickValue);
             }
         }
 
@@ -327,21 +377,13 @@ namespace Bricks
                 systemConsoleIO.WriteLine(error.ToString());
             }
 
-            // TODO: better structure
-            // var testFirstBrickLayer = new string[,]{
-            //     {"1", "2", "2", "12", "5", "7", "7", "16"},
-            //     {"1", "10", "10", "12", "5", "15", "15", "16"},
-            //     {"9", "9", "3", "4", "4", "8", "8", "14"},
-            //     {"11", "11", "3", "13", "13", "6", "6", "14"}
-            // };
-
             var secondBrickLayer = Solve(firstLayerBricks);
 
             if (secondBrickLayer != null)
             {
                 PrintBrickLayerFormatted(secondBrickLayer, systemConsoleIO);
             }
-            else 
+            else
             {
                 systemConsoleIO.WriteLine("-1. No solution.");
             }

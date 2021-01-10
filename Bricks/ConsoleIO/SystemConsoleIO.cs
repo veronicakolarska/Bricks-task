@@ -2,6 +2,9 @@ using System;
 
 namespace Bricks.ConsoleIO
 {
+    /// <summary>
+    /// Implementation using the default console
+    /// </summary>
     public class SystemConsoleIO : IConsoleIO
     {
         public string ReadLine()
