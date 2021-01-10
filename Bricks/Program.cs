@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Bricks.ConsoleIO;
 
 namespace Bricks
 {
-    class Program
+    public class Program
     {
         // validate no brick spans 3 rows / columns
-        public static bool ValidateBrickSpanning(int[,] firstLayer)
+        public static IEnumerable<BrickSpanValidationError> ValidateBrickSpanning(int[,] firstLayer)
         {
-            // TODO: return validation errors
             var brickFrequency = new Dictionary<int, int>();
 
             var rows = firstLayer.GetLength(0);
@@ -30,13 +30,15 @@ namespace Bricks
                     }
                 }
             }
-            return brickFrequency.All(x => x.Value == 2);
+            return brickFrequency
+                    .Where(x => x.Value > 2)
+                    .Select(x => new BrickSpanValidationError(x.Key, x.Value));
         }
 
         // read input - two dimensions and first layer of bricks
-        public static int[,] ReadInput()
+        public static int[,] ReadInput(IConsoleIO consoleIO)
         {
-            var dimensionInputs = Console.ReadLine()
+            var dimensionInputs = consoleIO.ReadLine()
                         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                         .Select(dimension => int.Parse(dimension))
                         .ToArray();
@@ -51,7 +53,7 @@ namespace Bricks
 
             for (int row = 0; row < rows; row++)
             {
-                var brickRow = Console.ReadLine()
+                var brickRow = consoleIO.ReadLine()
                         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                         .Select(dimension => int.Parse(dimension))
                         .ToArray();
@@ -64,7 +66,7 @@ namespace Bricks
             return firstBrickLayer;
         }
 
-        public static void PrintBrickLayer<T>(T[,] brickLayer)
+        public static void PrintBrickLayer<T>(T[,] brickLayer, IConsoleIO consoleIO)
         {
             var rows = brickLayer.GetLength(0);
             var columns = brickLayer.GetLength(1);
@@ -74,15 +76,15 @@ namespace Bricks
                 // for every column that doesn't exceed max columns
                 for (var col = 0; col < columns; col++)
                 {
-                    Console.Write(brickLayer[row, col].ToString().PadLeft(3));
+                    consoleIO.Write(brickLayer[row, col].ToString().PadLeft(3));
                 }
-                Console.WriteLine();
+                consoleIO.WriteLine();
             }
         }
 
         // print bricks with asterisk  
         // from up and left of every position
-        public static void PrintBrickLayerFormatted(int[,] brickLayer)
+        public static void PrintBrickLayerFormatted(int[,] brickLayer, IConsoleIO consoleIO)
         {
             // print character
             var wallSymbol = '*';
@@ -114,11 +116,11 @@ namespace Bricks
                         {
                             if (hasUpBrick)
                             {
-                                Console.Write($"{wallSymbol}   ");
+                                consoleIO.Write($"{wallSymbol}   ");
                             }
                             else
                             {
-                                Console.Write(new string(wallSymbol, 4));
+                                consoleIO.Write(new string(wallSymbol, 4));
                             }
                         }
 
@@ -128,15 +130,15 @@ namespace Bricks
                             var valueToPrint = brickLayer[row, col].ToString().PadLeft(3);
                             if (hasLeftBrick)
                             {
-                                Console.Write($" {valueToPrint}");
+                                consoleIO.Write($" {valueToPrint}");
                             }
                             else if (hasRightBrick)
                             {
-                                Console.Write($"{wallSymbol}{valueToPrint}");
+                                consoleIO.Write($"{wallSymbol}{valueToPrint}");
                             }
                             else
                             {
-                                Console.Write($"{wallSymbol}{valueToPrint}");
+                                consoleIO.Write($"{wallSymbol}{valueToPrint}");
                             }
                         }
 
@@ -145,28 +147,30 @@ namespace Bricks
                         {
                             if (hasDownBrick)
                             {
-                                Console.Write($"{wallSymbol}   ");
+                                consoleIO.Write($"{wallSymbol}   ");
                             }
                             else
                             {
-                                Console.Write(new string(wallSymbol, 4));
+                                consoleIO.Write(new string(wallSymbol, 4));
                             }
                         }
 
                         // prints the last column of asterisk for every row
                         if (isLastCol)
                         {
-                            Console.Write(wallSymbol);
+                            consoleIO.Write(wallSymbol.ToString());
                         }
                     }
                     // end of row - new line
-                    Console.WriteLine();
+                    consoleIO.WriteLine();
                 }
             }
         }
 
-        public static void Solve(int rows, int cols, string[,] firstBrickLayer)
+        public static int[,] Solve(int[,] firstBrickLayer)
         {
+            var rows = firstBrickLayer.GetLength(0);
+            var cols = firstBrickLayer.GetLength(1);
             var secondBrickLayer = new int[rows, cols];
             var usedPosition = new bool[rows * cols];
             // saves the position that the brick part can go (max 4 directions)
@@ -254,11 +258,11 @@ namespace Bricks
                         secondBrickLayer[targetsAndOrigins[index] / cols, targetsAndOrigins[index] % cols] = brickNumber;
                     }
                 }
-                PrintBrickLayerFormatted(secondBrickLayer);
+                return secondBrickLayer;
             }
             else
             {
-                Console.WriteLine("-1. No solution!");
+                return null;
             }
         }
 
@@ -315,21 +319,32 @@ namespace Bricks
 
         public static void Main(string[] args)
         {
-            // var firstLayerBricks = ReadInput();
-            // Console.WriteLine(ValidateBrickSpanning(firstLayerBricks));
-            // PrintBrickLayerFormatted(firstLayerBricks);
+            var systemConsoleIO = new SystemConsoleIO();
+            var firstLayerBricks = ReadInput(systemConsoleIO);
+            var errors = ValidateBrickSpanning(firstLayerBricks);
+            foreach (var error in errors)
+            {
+                systemConsoleIO.WriteLine(error.ToString());
+            }
 
-            // TODO: input solution
-            var testRows = 4;
-            var testCols = 8;
-            var testFirstBrickLayer = new string[,]{
-                {"1", "2", "2", "12", "5", "7", "7", "16"},
-                {"1", "10", "10", "12", "5", "15", "15", "16"},
-                {"9", "9", "3", "4", "4", "8", "8", "14"},
-                {"11", "11", "3", "13", "13", "6", "6", "14"}
-            };
+            // TODO: better structure
+            // var testFirstBrickLayer = new string[,]{
+            //     {"1", "2", "2", "12", "5", "7", "7", "16"},
+            //     {"1", "10", "10", "12", "5", "15", "15", "16"},
+            //     {"9", "9", "3", "4", "4", "8", "8", "14"},
+            //     {"11", "11", "3", "13", "13", "6", "6", "14"}
+            // };
 
-            Solve(testRows, testCols, testFirstBrickLayer);
+            var secondBrickLayer = Solve(firstLayerBricks);
+
+            if (secondBrickLayer != null)
+            {
+                PrintBrickLayerFormatted(secondBrickLayer, systemConsoleIO);
+            }
+            else 
+            {
+                systemConsoleIO.WriteLine("-1. No solution.");
+            }
         }
     }
 }
